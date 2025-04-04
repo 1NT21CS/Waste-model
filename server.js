@@ -11,7 +11,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: "https://waste-management-sand.vercel.app", // or your deployed frontend URL
+  origin: "https://waste-management-sand.vercel.app", 
 }));
 
 // Multer setup
