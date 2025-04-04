@@ -11,7 +11,7 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: "https://waste-management-sand.vercel.app", 
+  origin: "https://waste-management-sand.vercel.app/", 
 }));
 
 // Multer setup
@@ -59,19 +59,19 @@ app.post("/upload", upload.single("file"), async (req, res) => {
               content: [
                 {
                   type: "text",
-                  text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'), and return a JSON object in the following format:
+                  text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry", "Wet", "Electronics", or "Medical". If the item is not related to waste or cannot be classified under these categories, set "classification": "NA" and write "NA" for all fields in general_solution. Return the result in the following JSON structure:
 
 {
   "prediction": {
-    "<object name>": {
-      "classification": "<Biodegradable | Non-Biodegradable | Recyclable>",
+    "ITEM_NAME": {
+      "classification": "Dry Waste | Wet Waste | Electronics Waste | Medical Waste | NA",
       "general_solution": {
-        "disposal": "<How to dispose it>",
-        "benefits": "<Environmental or economic benefits>",
-        "tips": "<Helpful usage or disposal tips>",
-        "impact": "<How it affects the environment>",
-        "alternatives": "<Better alternatives if any>",
-        "additional_resources": "<A helpful link or article>"
+        "disposal": "string or NA",
+        "benefits": "string or NA",
+        "tips": "string or NA",
+        "impact": "string or NA",
+        "alternatives": "string or NA",
+        "additional_resources": "string or NA"
       }
     }
   }
