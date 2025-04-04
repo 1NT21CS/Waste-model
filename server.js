@@ -61,7 +61,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
               content: [
                 {
                   type: "text",
-                  text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry", "Wet", "Electronics", or "Medical". If the item is not related to waste or cannot be classified under these categories, set "classification": "NA" and write "NA" for all fields in general_solution. Return the result in the following JSON structure:
+                  text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry Waste", "Wet Waste", "Electronics Waste", or "Medical Waste". If the item is not related to waste or cannot be classified under these categories, set "classification": "NA" and write "NA" for all fields in general_solution. Return the result in the following JSON structure:
 
 {
   "prediction": {
