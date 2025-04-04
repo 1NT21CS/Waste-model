@@ -1,3 +1,6 @@
 node_modules
 .env
 gcloud-key.json
+gcloud-key.json
+
+temp-gcloud-key.json
