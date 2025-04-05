@@ -88,7 +88,7 @@ Only return the JSON object.`,
               ],
             },
           ],
-          max_tokens: 500,
+          max_tokens: 250,
         });
         let rawContent = chatCompletion.choices[0].message.content || "";
 
