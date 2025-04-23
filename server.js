@@ -11,8 +11,12 @@ const app = express();
 const port = 3000;
 
 app.use(cors({
-  origin: "https://waste-management-sand.vercel.app/", 
+  origin: [
+    "https://waste-management-sand.vercel.app/",
+    "http://localhost:5173/"
+  ]
 }));
+app.use(express.json());
 
 // Multer setup
 const upload = multer({ storage: multer.memoryStorage() });
@@ -28,7 +32,7 @@ const bucket = storage.bucket(bucketName);
 // HuggingFace setup
 const hf = new InferenceClient(process.env.HF_TOKEN);
 
-// Upload and describe endpoint
+/* ========= /upload Endpoint ========= */
 app.post("/upload", upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
@@ -50,16 +54,16 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     const publicUrl = `https://storage.googleapis.com/${bucketName}/${blob.name}`;
 
     try {
-        const chatCompletion = await hf.chatCompletion({
-          provider: "nebius",
-          model: "google/gemma-3-27b-it",
-          messages: [
-            {
-              role: "user",
-              content: [
-                {
-                  type: "text",
-                  text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry", "Wet", "Electronics", or "Medical". If the item is not related to waste or cannot be classified under these categories, set "classification": "NA" and write "NA" for all fields in general_solution. Return the result in the following JSON structure:
+      const chatCompletion = await hf.chatCompletion({
+        provider: "nebius",
+        model: "google/gemma-3-27b-it",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry", "Wet", "Electronics", or "Medical". If the item is not related to waste or cannot be classified under these categories, set "classification": "NA" and write "NA" for all fields in general_solution. Return the result in the following JSON structure:
 
 {
   "prediction": {
@@ -78,40 +82,77 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 }
 
 Only return the JSON object.`,
-                },
-                {
-                  type: "image_url",
-                  image_url: { url: publicUrl },
-                },
-              ],
-            },
-          ],
-          max_tokens: 500,
-        });
-        let rawContent = chatCompletion.choices[0].message.content || "";
+              },
+              {
+                type: "image_url",
+                image_url: { url: publicUrl },
+              },
+            ],
+          },
+        ],
+        max_tokens: 250,
+      });
 
-        // Extract JSON from markdown-style code block
-        const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
-        if (!jsonMatch) {
-          return res.status(500).json({ error: "Model response is not valid JSON." });
-        }
-        
-        try {
-          const parsed = JSON.parse(jsonMatch[1]);
-          await blob.delete(); // Delete the uploaded image
-          res.json(parsed); // Send structured JSON response
-        } catch (err) {
-          res.status(500).json({ error: "Failed to parse JSON from model.", details: err });
-        }
-        // or also return publicUrl if needed
-      } catch (err) {
-        res.status(500).json({ error: "Failed to process image", details: err });
+      let rawContent = chatCompletion.choices[0].message.content || "";
+      const jsonMatch = rawContent.match(/```json\s*([\s\S]*?)\s*```/);
+
+      if (!jsonMatch) {
+        return res.status(500).json({ error: "Model response is not valid JSON." });
       }
+
+      try {
+        const parsed = JSON.parse(jsonMatch[1]);
+        await blob.delete();
+        res.json(parsed);
+      } catch (err) {
+        res.status(500).json({ error: "Failed to parse JSON from model.", details: err });
+      }
+    } catch (err) {
+      res.status(500).json({ error: "Failed to process image", details: err.toString() });
+    }
   });
 
   blobStream.end(req.file.buffer);
 });
 
+/* ========= /type Endpoint ========= */
+app.post("/type", async (req, res) => {
+  const { imageUrl } = req.body;
+
+  if (!imageUrl) {
+    return res.status(400).json({ error: "No image URL provided" });
+  }
+
+  try {
+    const chatCompletion = await hf.chatCompletion({
+      provider: "nebius",
+      model: "google/gemma-3-27b-it",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry Waste", "Wet Waste", "Electronics Waste", or "Medical Waste". Return only the type as a string.`,
+            },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
+      max_tokens: 100,
+    });
+
+    const rawContent = chatCompletion.choices[0].message.content || "";
+    res.json({ type: rawContent.trim() });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to process image", details: err.toString() });
+  }
+});
+
+/* ========= Start Server ========= */
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
