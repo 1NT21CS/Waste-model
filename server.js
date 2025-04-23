@@ -14,7 +14,7 @@ app.use(cors({
   origin: [
     "https://waste-management-sand.vercel.app/",
     "http://localhost:5173/",
-    "http://172.26.128.1/"
+    "http://172.26.128.1:5173/"
   ]
 }));
 app.use(express.json());
