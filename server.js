@@ -134,7 +134,7 @@ app.post("/type", async (req, res) => {
           content: [
             {
               type: "text",
-              text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry Waste", "Wet Waste", "Electronics Waste", or "Medical Waste". Return only the type as a string.`,
+              text: `You are a waste classification assistant. Based on the image provided, identify the primary object (e.g., 'Plastic Bottle'). Classify the given waste item image into one of the following categories: "Dry Waste", "Wet Waste", "Electronics Waste", "Medical Waste", or "NA". Return only the type as a string.`,
             },
             {
               type: "image_url",
